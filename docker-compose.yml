@@ -1,0 +1,50 @@
+
+services:
+  logic:
+    #image: quickbite_logic:v1
+    build:
+      context: ./logic
+    container_name: logic
+    ports: 
+      - "8081:8081"
+    networks:
+      - mynetwork
+
+  gateway:
+    #image: quickbite_gateway:v1
+    build:
+      context: ./gateway
+    container_name: gateways
+    ports: 
+      - "8080:8080"
+    networks:
+      - mynetwork  
+
+  frontend:
+    #image: quickbite_frontend:v1
+    build:
+      context: ./frontend
+    container_name: frontend
+    ports: 
+      - "5173:5173"
+    networks:
+      - mynetwork  
+  postgres:
+    image: postgres:16
+    container_name: postgres
+    environment:
+      POSTGRES_DB: quickbite
+      POSTGRES_USER: quickbite
+      POSTGRES_PASSWORD: quickbite
+    ports:
+      - "5432:5432"
+    networks:
+      - mynetwork
+    volumes:
+      - pgdata:/var/lib/postgresql/data     
+networks:
+  mynetwork:
+    name: mynetwork
+    external: true # additional if network already exist
+volumes:
+  pgdata:    

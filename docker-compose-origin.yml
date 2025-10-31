@@ -1,0 +1,72 @@
+
+networks:
+  mynetwork:
+    name: mynetwork
+
+
+services:
+  postgres:
+    image: postgres:16
+    container_name: postgres
+    environment:
+      POSTGRES_DB: quickbite
+      POSTGRES_USER: quickbite
+      POSTGRES_PASSWORD: quickbite
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./data.sql:/docker-entrypoint-initdb.d/data.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U quickbite -d quickbite"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - mynetwork
+
+  logic:
+    build:
+      context: ./logic
+      dockerfile: Dockerfile
+    container_name: logic
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      # Nếu muốn override qua env thay vì file properties, có thể bật các biến này:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/quickbite
+      SPRING_DATASOURCE_USERNAME: quickbite
+      SPRING_DATASOURCE_PASSWORD: quickbite
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT: org.hibernate.dialect.PostgreSQLDialect
+      # JAVA_OPTS: -Xms256m -Xmx512m
+    ports:
+      - "8081:8081"
+    networks:
+      - mynetwork
+
+  gateways:
+    build:
+      context: ./gateway
+    container_name: gateways
+    depends_on:
+      - logic
+    ports:
+      - "8080:8080"
+    networks:
+      - mynetwork
+
+  frontend:
+    build:
+      context: ./frontend
+    container_name: frontend
+    depends_on:
+      - gateways
+    ports:
+      - "5173:5173"
+    networks:
+      - mynetwork
+
+volumes:
+  pgdata:

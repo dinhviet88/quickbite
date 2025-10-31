@@ -1,0 +1,20 @@
+version: "3.8"
+
+networks:
+  app-net:
+    external: true
+
+services:
+  frontend:
+    image: dinhviet88/quickbite-frontend:v1  # replace with your image
+    networks: [app-net]
+    ports:
+      - "80:80"                 # Swarm routing mesh; any node's :80 works
+    deploy:
+      replicas: 3               # one per node
+      update_config:
+        parallelism: 1
+        delay: 5s
+        order: start-first
+      restart_policy:
+        condition: on-failure

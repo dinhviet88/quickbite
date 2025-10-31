@@ -8,7 +8,8 @@ export default defineConfig({
     proxy: {
       // anything starting with /api goes to the gateway
       '/api': {
-        target: 'http://localhost:8080',
+        //target: 'http://localhost:8080',
+        target: 'http://gateway:8080',
         changeOrigin: true
       }
     }
